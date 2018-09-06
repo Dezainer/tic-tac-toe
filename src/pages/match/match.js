@@ -13,12 +13,24 @@ export default class Match extends React.Component {
 	}
 
 	componentDidMount() {
-		setTimeout(() => {
-			this.setState(prevState => {
-				prevState.matrix[1][2] = 'X'
-				return { matrix: prevState.matrix }
-			})
-		}, 1000)
+		let ws = new WebSocket('ws://localhost:3000?id=asd')
+		ws.onmessage = e => this.handleData(JSON.parse(e.data))
+	}
+
+	handleData(data) {
+		data.error
+			? this.handleError(data.errorData)
+			: this.handleSuccess(data)
+	}
+
+	handleError(error) {
+		console.log('error')
+		console.dir(error, { depth: null })
+	}
+
+	handleSuccess(data) {
+		console.log('success')
+		console.log(data)
 	}
 
 	getMatrix() {
