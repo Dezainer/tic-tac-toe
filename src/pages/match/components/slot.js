@@ -3,7 +3,8 @@ import React from 'react'
 export default class Slot extends React.Component {
 
 	handleClick() {
-		if(this.props.symbol) return
+		if(this.props.symbol || this.props.blocked) return
+		this.props.onClick()
 	}
 
 	render() {

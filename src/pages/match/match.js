@@ -5,16 +5,20 @@ import './match.css'
 export default class Match extends React.Component {
 
 	state = {
-		matrix: [
-			['O', 'O', 'O'],
-			['O', 'X', null],
-			[null, 'X', 'X']
-		]
+		game: {
+			plays: [
+				[null, null, null],
+				[null, null, null],
+				[null, null, null]
+			]
+		}
 	}
 
+	id = 'asd'
+
 	componentDidMount() {
-		let ws = new WebSocket('ws://localhost:3000?id=asd')
-		ws.onmessage = e => this.handleData(JSON.parse(e.data))
+		this.ws = new WebSocket('ws://localhost:3000?id='+this.id)
+		this.ws.onmessage = e => this.handleData(JSON.parse(e.data))
 	}
 
 	handleData(data) {
@@ -25,21 +29,28 @@ export default class Match extends React.Component {
 
 	handleError(error) {
 		console.log('error')
-		console.dir(error, { depth: null })
 	}
 
 	handleSuccess(data) {
-		console.log('success')
-		console.log(data)
+		this.setState(data)
+	}
+
+	makePlay(i, j) {
+		this.ws.send(JSON.stringify({
+			id: this.id,
+			play: { i, j, symbol: this.state.symbol }
+		}))
 	}
 
 	getMatrix() {
-		return this.state.matrix.map((row, i) => row.map((symbol, j) => (
+		return this.state.game.plays.map((row, i) => row.map((symbol, j) => (
 			<Slot 
 				key={ i + j }
 				i={ i }
 				j={ j }
 				symbol={ symbol }
+				blocked={ this.state.winner }
+				onClick={ () => this.makePlay(i, j) }
 			/>
 		)))
 	}
