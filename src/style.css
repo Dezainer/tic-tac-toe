@@ -17,4 +17,5 @@ main {
 	--x-color: rgb(255,0,0);
 	--symbol-opacity: 0.35;
 	--background-color: rgba(0,0,0,0.05);
+	--overlay-color: rgba(255,255,255,0.8);
 }

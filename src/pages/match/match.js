@@ -1,6 +1,8 @@
 import React from 'react'
-import Slot from './components/slot'
 import './match.css'
+
+import Slot from './components/slot'
+import EndGame from './components/endGame'
 
 export default class Match extends React.Component {
 
@@ -58,6 +60,11 @@ export default class Match extends React.Component {
 	render() {
 		return (
 			<main>
+				<EndGame
+					active={ this.state.winner }
+					symbol={ this.state.symbol }
+					won={ this.state.winner == this.state.symbol }
+				/>
 				<div className="matrix">
 					{ this.getMatrix() }
 				</div>
