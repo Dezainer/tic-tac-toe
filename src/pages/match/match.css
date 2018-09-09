@@ -1,6 +1,18 @@
+.content {
+	width: 75vh;
+}
+
+.status {
+	margin: 0 0 16px 8px;
+}
+.status h1,
+.status h4 {
+	opacity: var(--symbol-opacity);
+}
+
 .matrix {
-	width: 80vh;
-	height: 80vh;
+	width: 100%;
+	height: 75vh;
 }
 
 .slot {
@@ -61,6 +73,7 @@
 	position: fixed;
 	bottom: 0;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	width: 100%;
@@ -76,14 +89,44 @@
 }
 
 .end-game h2 {
-	font-family: sans-serif;
 	font-weight: bold;
 	font-size: 5vh;
-	opacity: var(--symbol-opacity)
+	opacity: var(--symbol-opacity);
 }
-.end-game.X h2 {
+.end-game.X h2,
+.status.X h1,
+.status.X h4 {
 	color: var(--x-color)
 }
-.end-game.O h2 {
+.end-game.O h2,
+.status.O h1,
+.status.O h4 {
 	color: var(--o-color)
+}
+
+.end-game button {
+	padding: 16px;
+	text-transform: uppercase;
+	border: none;
+	color: white;
+	outline: none;
+	margin-top: 16px;
+	font-size: 2vh;
+	opacity: var(--symbol-opacity);
+}
+.end-game.X button {
+	background: var(--x-color);
+}
+.end-game.O button {
+	background: var(--o-color);
+}
+
+@media only screen and (max-width: 480px) {
+	.content {
+		width: 90vw;
+	}
+
+	.matrix {
+		height: 90vw;
+	}
 }
