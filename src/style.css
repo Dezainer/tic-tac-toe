@@ -2,6 +2,7 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
+	font-family: sans-serif;
 }
 
 main {
@@ -17,4 +18,5 @@ main {
 	--x-color: rgb(255,0,0);
 	--symbol-opacity: 0.35;
 	--background-color: rgba(0,0,0,0.05);
+	--overlay-color: rgba(255,255,255,0.8);
 }
