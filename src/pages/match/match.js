@@ -9,6 +9,7 @@ export default class Match extends React.Component {
 
 	state = {}
 	id = 'asd'
+	client = '1'
 
 	componentDidMount() {
 		this.ws = new WebSocket('ws://172.16.132.224:3000/cable')
@@ -22,7 +23,8 @@ export default class Match extends React.Component {
 			command: 'subscribe',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
-				id: this.id
+				id: this.id,
+				client: this.client
 			})
 		}
 		this.ws.send(JSON.stringify(msg))
@@ -77,7 +79,7 @@ export default class Match extends React.Component {
 			}),
 			data: JSON.stringify({
 				action: 'make_play',
-				code: 'NCC1701D'
+				play: { i, j, symbol: this.state.symbol }
 			}),
 		}
 		this.ws.send(JSON.stringify(msg))
