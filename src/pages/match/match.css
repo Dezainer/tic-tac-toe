@@ -104,7 +104,7 @@
 	color: var(--o-color)
 }
 
-.end-game button {
+button {
 	padding: 16px;
 	text-transform: uppercase;
 	border: none;
@@ -114,14 +114,27 @@
 	font-size: 2vh;
 	opacity: var(--symbol-opacity);
 }
-.end-game.X button {
+.X button {
 	background: var(--x-color);
 }
-.end-game.O button {
+.O button {
 	background: var(--o-color);
 }
 
+input {
+	width: 45vh;
+	padding: 16px;
+	outline: none;
+	border: none;
+	border-bottom: 1px solid var(--x-color);
+	opacity: var(--symbol-opacity);
+}
+
 @media only screen and (max-width: 480px) {
+	input {
+		width: 60vw;
+	}
+
 	.content {
 		width: 90vw;
 	}

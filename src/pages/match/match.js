@@ -4,49 +4,46 @@ import './match.css'
 import Slot from './components/slot'
 import EndScreen from './components/endScreen'
 import Status from './components/status'
+import NicknameInput from './components/nicknameInput'
 
 export default class Match extends React.Component {
 
-	state = {
-		client: ''
-	}
+	state = { nickname: '' }
 	id = 'asd'
+	ip = '192.168.1.132'
 
 	componentDidMount() {
 		this.createConnection()
 	}
 
 	createConnection() {
-		this.ws = new WebSocket('ws://192.168.1.132:3000/cable')
+		this.ws = new WebSocket(`ws://${ this.ip }:3000/cable`)
 		this.ws.onmessage = e => this.handleData(JSON.parse(e.data))
-		// this.ws.onopen = () => this.subscribeToChannel()
 	}
 
 	subscribeToChannel() {
-		const msg = {
+		this.ws.send(JSON.stringify({
 			command: 'subscribe',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
 				id: this.id,
-				client: this.state.client
+				client: this.state.nickname
 			})
-		}
-		this.ws.send(JSON.stringify(msg))
+		}))
 	}
 
 	startGame() {
-		const msg = {
+		this.ws.send(JSON.stringify({
 			command: 'message',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
 				id: this.id,
-				client: this.state.client
+				client: this.state.nickname
 			}),
 			data: JSON.stringify({
 				action: 'start_game',
 			})
-		}
-		this.ws.send(JSON.stringify(msg))
+		}))
 	}
 
 	restartGame() {
@@ -55,38 +52,33 @@ export default class Match extends React.Component {
 	}
 
 	handleData(data) {
-		if (data.type === 'confirm_subscription') {
+		if (data.type === 'confirm_subscription')
 			this.startGame()
-		}
 
-		if (!data.message || !data.message.game) {
-			// this.setState({ready: false})
+		if (!data.message || !data.message.game)
 			return
-		}
 
-		const { game } = data.message
+		let{ game } = data.message
 
-		if (this.state.client && game.players[this.state.client]) {
-			game.symbol = game.players[this.state.client]
-		}
+		if (this.state.nickname && game.players[this.state.nickname])
+			game.symbol = game.players[this.state.nickname]
+
 		this.setState(game)
 	}
 
 	makePlay(i, j) {
-
-		const msg = {
+		this.ws.send(JSON.stringify({
 			command: 'message',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
 				id: this.id,
-				client: this.state.client
+				client: this.state.nickname
 			}),
 			data: JSON.stringify({
 				action: 'make_play',
 				play: { i, j, symbol: this.state.symbol }
 			}),
-		}
-		this.ws.send(JSON.stringify(msg))
+		}))
 	}
 
 	getMatrix() {
@@ -103,7 +95,7 @@ export default class Match extends React.Component {
 
 	getEndScreenMessage() {
 		if(this.state.winner == 'none')
-				return 'EMPATE'
+			return 'EMPATE'
 
 		if(this.state.winner == this.state.symbol)
 			return 'VOCÊ GANHOU'
@@ -121,33 +113,43 @@ export default class Match extends React.Component {
 		return 'Aguardando a jogada do adversário'
 	}
 
-	render() {
-		console.log(this.state)
-		return this.state.plays
-			? (
-				<main>
-					<EndScreen
-						active={ this.state.winner }
+	getMatch() {
+		return (
+			<div>
+				<EndScreen
+					active={ this.state.winner }
+					symbol={ this.state.symbol }
+					message={ this.getEndScreenMessage() }
+					onClick={ () => this.startGame() }
+				/>
+				<div className="content">
+					<Status
 						symbol={ this.state.symbol }
-						message={ this.getEndScreenMessage() }
-						onClick={ () => this.startGame() }
+						message={ this.getStatus() }
 					/>
-					<div className="content">
-						<Status
-							symbol={ this.state.symbol }
-							message={ this.getStatus() }
-						/>
-						<div className="matrix">
-							{ this.getMatrix() }
-						</div>
+					<div className="matrix">
+						{ this.getMatrix() }
 					</div>
-				</main>
-			)
-			: (
-				<div>
-					<input placeholder="Nickname" value={this.state.client} onChange={e => this.setState({client: e.target.value})} />
-					<button onClick={() => this.subscribeToChannel()}>Iniciar</button>
 				</div>
-			)
+			</div>
+		)
+	}
+
+	getNicknameInput() {
+		return (
+			<NicknameInput
+				value={ this.state.nickname }
+				onChange={ nickname => this.setState({ nickname }) }
+				onSubmit={ () => this.subscribeToChannel() }
+			/>
+		)
+	}
+
+	render() {
+		return (
+			<main>
+				{ this.state.plays ? this.getMatch() : this.getNicknameInput() }
+			</main>
+		)
 	}
 }
