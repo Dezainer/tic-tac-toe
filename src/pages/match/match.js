@@ -7,12 +7,13 @@ import Status from './components/status'
 
 export default class Match extends React.Component {
 
-	state = {}
+	state = {
+		symbol: 'X'
+	}
 	id = 'asd'
-	client = '1'
 
 	componentDidMount() {
-		this.ws = new WebSocket('ws://172.16.132.224:3000/cable')
+		this.ws = new WebSocket('ws://192.168.1.107:3000/cable')
 		this.ws.onmessage = e => this.handleData(JSON.parse(e.data))
 		// this.ws.onmessage = e => console.log(e.data)
 		this.ws.onopen = () => this.subscribeChannel()
@@ -39,8 +40,7 @@ export default class Match extends React.Component {
 				id: this.id
 			}),
 			data: JSON.stringify({
-				action: 'get_game',
-				code: 'NCC1701D',
+				action: 'get_game'
 			})
 		}
 		this.ws.send(JSON.stringify(msg))
@@ -57,11 +57,11 @@ export default class Match extends React.Component {
 			return
 		}
 
-		console.log(data)
 		if (data.type === 'confirm_subscription') {
 			this.startGame()
 			return
 		}
+		// console.log(data)
 		const game = data.message
 		this.setState({ ...game})
 	}
@@ -75,7 +75,8 @@ export default class Match extends React.Component {
 		const msg = {
 			command: 'message',
 			identifier: JSON.stringify({
-				channel: 'SomeChannel',
+				channel: 'MatchChannel',
+				id: this.id
 			}),
 			data: JSON.stringify({
 				action: 'make_play',
@@ -86,43 +87,44 @@ export default class Match extends React.Component {
 	}
 
 	getMatrix() {
-		let { game, winner, turn, symbol } = this.state
-		return game.plays.map((row, i) => row.map((item, j) => (
+		let { plays, winner, symbol, turn } = this.state
+		return plays.map((row, i) => row.map((item, j) => (
 			<Slot
 				key={ i + j }
 				symbol={ item }
-				blocked={ winner || game.turn != symbol }
+				blocked={ winner || turn != symbol }
 				onClick={ () => this.makePlay(i, j) }
 			/>
 		)))
 	}
 
 	getEndScreenMessage() {
-		if(this.state.game.winner == 'none')
+		if(this.state.winner == 'none')
 				return 'EMPATE'
 
-		if(this.state.game.winner == this.state.symbol)
+		if(this.state.winner == this.state.symbol)
 			return 'VOCÊ GANHOU'
 
 		return 'VOCÊ PERDEU'
 	}
 
 	getStatus() {
-		if(!this.state.game.isReadyToPlay)
-			return 'Aguardando adversário entrar na sala'
+		// if(!this.state.game.isReadyToPlay)
+		// 	return 'Aguardando adversário entrar na sala'
 
-		if(this.state.game.turn == this.state.symbol)
+		if(this.state.turn == this.state.symbol)
 			return 'Sua vez de jogar'
 
 		return 'Aguardando a jogada do adversário'
 	}
 
 	render() {
-		return this.state.game && this.state.game.plays
+		console.log(this.state)
+		return this.state.plays
 			? (
 				<main>
 					<EndScreen
-						active={ this.state.game.winner }
+						active={ this.state.winner }
 						symbol={ this.state.symbol }
 						message={ this.getEndScreenMessage() }
 						onClick={ () => this.restartGame() }
