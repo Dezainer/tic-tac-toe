@@ -13,18 +13,22 @@ export default class Match extends React.Component {
 	id = 'asd'
 
 	componentDidMount() {
-		this.ws = new WebSocket('ws://192.168.1.132:3000/cable')
-		this.ws.onmessage = e => this.handleData(JSON.parse(e.data))
-		// this.ws.onmessage = e => console.log(e.data)
-		this.ws.onopen = () => this.subscribeChannel()
+		this.createConnection()
 	}
 
-	subscribeChannel() {
+	createConnection() {
+		this.ws = new WebSocket('ws://192.168.1.132:3000/cable')
+		this.ws.onmessage = e => this.handleData(JSON.parse(e.data))
+		// this.ws.onopen = () => this.subscribeToChannel()
+	}
+
+	subscribeToChannel() {
 		const msg = {
 			command: 'subscribe',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
-				id: this.id
+				id: this.id,
+				client: this.state.client
 			})
 		}
 		this.ws.send(JSON.stringify(msg))
@@ -35,18 +39,28 @@ export default class Match extends React.Component {
 			command: 'message',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
-				id: this.id
+				id: this.id,
+				client: this.state.client
 			}),
 			data: JSON.stringify({
 				action: 'start_game',
-				client: this.state.client
 			})
 		}
 		this.ws.send(JSON.stringify(msg))
 	}
 
+	restartGame() {
+		this.ws.close()
+		this.createConnection()
+	}
+
 	handleData(data) {
+		if (data.type === 'confirm_subscription') {
+			this.startGame()
+		}
+
 		if (!data.message || !data.message.game) {
+			// this.setState({ready: false})
 			return
 		}
 
@@ -55,7 +69,7 @@ export default class Match extends React.Component {
 		if (this.state.client && game.players[this.state.client]) {
 			game.symbol = game.players[this.state.client]
 		}
-		this.setState({ ...game})
+		this.setState(game)
 	}
 
 	makePlay(i, j) {
@@ -64,7 +78,8 @@ export default class Match extends React.Component {
 			command: 'message',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
-				id: this.id
+				id: this.id,
+				client: this.state.client
 			}),
 			data: JSON.stringify({
 				action: 'make_play',
@@ -131,7 +146,7 @@ export default class Match extends React.Component {
 			: (
 				<div>
 					<input placeholder="Nickname" value={this.state.client} onChange={e => this.setState({client: e.target.value})} />
-					<button onClick={() => this.startGame()}>Iniciar</button>
+					<button onClick={() => this.subscribeToChannel()}>Iniciar</button>
 				</div>
 			)
 	}
