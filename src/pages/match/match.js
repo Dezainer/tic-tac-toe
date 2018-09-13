@@ -8,12 +8,12 @@ import Status from './components/status'
 export default class Match extends React.Component {
 
 	state = {
-		symbol: 'X'
+		client: ''
 	}
 	id = 'asd'
 
 	componentDidMount() {
-		this.ws = new WebSocket('ws://192.168.1.107:3000/cable')
+		this.ws = new WebSocket('ws://192.168.1.132:3000/cable')
 		this.ws.onmessage = e => this.handleData(JSON.parse(e.data))
 		// this.ws.onmessage = e => console.log(e.data)
 		this.ws.onopen = () => this.subscribeChannel()
@@ -24,12 +24,10 @@ export default class Match extends React.Component {
 			command: 'subscribe',
 			identifier: JSON.stringify({
 				channel: 'MatchChannel',
-				id: this.id,
-				client: this.client
+				id: this.id
 			})
 		}
 		this.ws.send(JSON.stringify(msg))
-		this.startGame()
 	}
 
 	startGame() {
@@ -40,37 +38,27 @@ export default class Match extends React.Component {
 				id: this.id
 			}),
 			data: JSON.stringify({
-				action: 'get_game'
+				action: 'start_game',
+				client: this.state.client
 			})
 		}
 		this.ws.send(JSON.stringify(msg))
 	}
 
-	restartGame() {
-		this.ws.close()
-		this.startGame()
-	}
-
 	handleData(data) {
-		if (data.error) {
-			console.log(data.errorData)
+		if (!data.message || !data.message.game) {
 			return
 		}
 
-		if (data.type === 'confirm_subscription') {
-			this.startGame()
-			return
+		const { game } = data.message
+
+		if (this.state.client && game.players[this.state.client]) {
+			game.symbol = game.players[this.state.client]
 		}
-		// console.log(data)
-		const game = data.message
 		this.setState({ ...game})
 	}
 
 	makePlay(i, j) {
-		// this.ws.send(JSON.stringify({
-		// 	id: this.id,
-		// 	play: { i, j, symbol: this.state.symbol }
-		// }))
 
 		const msg = {
 			command: 'message',
@@ -87,12 +75,12 @@ export default class Match extends React.Component {
 	}
 
 	getMatrix() {
-		let { plays, winner, symbol, turn } = this.state
+		let { plays, winner, symbol, turn, ready } = this.state
 		return plays.map((row, i) => row.map((item, j) => (
 			<Slot
 				key={ i + j }
 				symbol={ item }
-				blocked={ winner || turn != symbol }
+				blocked={ winner || turn != symbol || !ready }
 				onClick={ () => this.makePlay(i, j) }
 			/>
 		)))
@@ -109,8 +97,8 @@ export default class Match extends React.Component {
 	}
 
 	getStatus() {
-		// if(!this.state.game.isReadyToPlay)
-		// 	return 'Aguardando adversário entrar na sala'
+		if(!this.state.ready)
+			return 'Aguardando adversário entrar na sala'
 
 		if(this.state.turn == this.state.symbol)
 			return 'Sua vez de jogar'
@@ -127,7 +115,7 @@ export default class Match extends React.Component {
 						active={ this.state.winner }
 						symbol={ this.state.symbol }
 						message={ this.getEndScreenMessage() }
-						onClick={ () => this.restartGame() }
+						onClick={ () => this.startGame() }
 					/>
 					<div className="content">
 						<Status
@@ -140,6 +128,11 @@ export default class Match extends React.Component {
 					</div>
 				</main>
 			)
-			: null
+			: (
+				<div>
+					<input placeholder="Nickname" value={this.state.client} onChange={e => this.setState({client: e.target.value})} />
+					<button onClick={() => this.startGame()}>Iniciar</button>
+				</div>
+			)
 	}
 }
